@@ -1,0 +1,77 @@
+/* frontend/src/styles.css */
+/*
+/* 使用渐变背景
+body, html, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+  color: #333;
+}
+*/
+
+body, html, #app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-image: url('@/assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #333;
+}
+
+
+/* 容器样式 */
+.room-container {
+  margin-bottom: 20px;
+  padding: 20px;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.room-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 按钮样式 */
+.button-on {
+  background-color: #67C23A;
+  color: white;
+}
+
+.button-off {
+  background-color: #F56C6C;
+  color: white;
+}
+
+/* 过渡效果 */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
+
+/* 动画效果 */
+.animate__animated {
+  animation-duration: 0.5s;
+}
+
+.list-enter-active, .list-leave-active {
+  transition: all 0.5s;
+}
+.list-enter-from, .list-leave-to {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.mr-2 {
+  margin-right: 10px;
+}
