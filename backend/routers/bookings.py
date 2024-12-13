@@ -1,17 +1,15 @@
 # backend/routers/bookings.py
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from ..database import SessionLocal
-# backend/routers/bookings.py
-from ..schemas import Booking, BookingCreate  # 正确：从 schemas 导入
-from ..models import Booking as BookingModel, RoomModel, Guest  # ORM模型，重命名为 BookingModel
-
+from ..schemas import Booking, BookingCreate  # Pydantic模型
+from ..models import Booking as BookingModel, RoomModel, Guest  # ORM模型
 from datetime import datetime
 import logging
 
 router = APIRouter()
-
 
 def get_db():
     db = SessionLocal()
@@ -20,12 +18,10 @@ def get_db():
     finally:
         db.close()
 
-
 @router.get("/", response_model=List[Booking])
 def get_bookings(db: Session = Depends(get_db)):
-    bookings = db.query(Booking).all()
+    bookings = db.query(BookingModel).all()  # 使用ORM模型
     return bookings
-
 
 @router.post("/", response_model=Booking)
 def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
@@ -39,10 +35,11 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     if not guest:
         raise HTTPException(status_code=404, detail="Guest not found")
 
-    new_booking = Booking(
+    new_booking = BookingModel(
         room_number=booking.room_number,
         guest_id=booking.guest_id,
-        status="checked_in"
+        status="checked_in",
+        booking_time=datetime.utcnow()  # 假设有booking_time字段
     )
     room.is_powered_on = True
     db.add(new_booking)
@@ -50,10 +47,9 @@ def create_booking(booking: BookingCreate, db: Session = Depends(get_db)):
     db.refresh(new_booking)
     return new_booking
 
-
 @router.post("/{booking_id}/checkout", response_model=Booking)
 def checkout_booking(booking_id: int, db: Session = Depends(get_db)):
-    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    booking = db.query(BookingModel).filter(BookingModel.id == booking_id).first()  # 使用ORM模型
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
     if booking.status == "checked_out":
@@ -62,7 +58,7 @@ def checkout_booking(booking_id: int, db: Session = Depends(get_db)):
     booking.status = "checked_out"
     booking.checkout_time = datetime.utcnow()
     # 计算总费用（示例逻辑，需根据实际需求调整）
-    booking.total_cost = booking.total_cost + 10.0  # 示例：每次退房增加10元
+    booking.total_cost += 10.0  # 示例：每次退房增加10元
 
     room = db.query(RoomModel).filter(RoomModel.room_number == booking.room_number).first()
     room.is_powered_on = False

@@ -108,7 +108,6 @@ async def simulate_step(step: int, db: Session):
     """
     模拟调度步骤，调整每个房间的温度和费用。
     """
-    logger.info(f"simulate_step {step} started.")
     try:
         # 查询所有房间
         rooms = db.query(RoomModel).all()
@@ -153,7 +152,6 @@ async def simulate_step(step: int, db: Session):
                     room.current_temperature = min(room.current_temperature + TEMP_REGRESSION_RATE, room.otem)
 
         db.commit()
-        logger.info(f"simulate_step {step} completed successfully.")
 
         # 获取最新的房间数据并广播
         updated_rooms = db.query(RoomModel).all()

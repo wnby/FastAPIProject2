@@ -10,7 +10,7 @@ class RoomModel(Base):
     is_powered_on = Column(Boolean, default=False)
     current_temperature = Column(Float, default=25.0)
     target_temperature = Column(Float, default=25.0)
-    mode = Column(String, default="Cooling")  # "Cooling" or "Heating"
+    mode = Column(String, default="Heating")  # "Cooling" or "Heating"
     wind_speed = Column(String, default="Medium")  # "Low","Medium","High"
     cost_rate = Column(Float, default=1.0)
     otem = Column(Float, default=25.0)

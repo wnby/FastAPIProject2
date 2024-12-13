@@ -4,21 +4,21 @@
     class="room-container animate__animated"
     :class="[
       cardAnimation,
-      room.isPoweredOn ? 'active-room' : 'inactive-room',
+      room.is_powered_on ? 'active-room' : 'inactive-room',
       temperatureClass
     ]"
   >
     <div class="room-header">
-      <h3>房间 {{ room.roomNumber }}</h3>
+      <h3>房间 {{ room.room_number }}</h3>
       <el-tooltip class="item" effect="dark" content="点击切换开关机状态" placement="top">
         <el-button
           type="text"
-          :class="room.isPoweredOn ? 'button-off' : 'button-on'"
+          :class="room.is_powered_on ? 'button-off' : 'button-on'"
           @click="togglePower"
           :loading="loadingPower"
           icon="el-icon-switch"
         >
-          {{ room.isPoweredOn ? '关' : '开' }}
+          {{ room.is_powered_on ? '关' : '开' }}
         </el-button>
       </el-tooltip>
     </div>
@@ -26,11 +26,11 @@
     <div class="status-section">
       <div class="status-item">
         <i :class="temperatureIcon" class="status-icon"></i>
-        <span>{{ room.ntem.toFixed(2) }} °C</span>
+        <span>{{ room.current_temperature.toFixed(2) }} °C</span>
       </div>
       <div class="status-item">
         <i class="el-icon-finished status-icon"></i>
-        <span>{{ room.windSpeed }}</span>
+        <span>{{ room.wind_speed }}</span>
       </div>
       <div class="status-item">
         <i class="el-icon-dollar status-icon"></i>
@@ -42,7 +42,7 @@
       <el-form label-width="80px" inline>
         <el-form-item label="温度">
           <el-input
-            v-model.number="room.targetTemperature"
+            v-model.number="room.target_temperature"
             type="number"
             :min="18"
             :max="30"
@@ -61,21 +61,21 @@
           <el-button-group>
             <el-button
               type="primary"
-              :type="room.windSpeed === 'Low' ? 'primary' : 'default'"
+              :type="room.wind_speed === 'Low' ? 'primary' : 'default'"
               @click="setWindSpeed('Low')"
             >
               低
             </el-button>
             <el-button
               type="primary"
-              :type="room.windSpeed === 'Medium' ? 'primary' : 'default'"
+              :type="room.wind_speed === 'Medium' ? 'primary' : 'default'"
               @click="setWindSpeed('Medium')"
             >
               中
             </el-button>
             <el-button
               type="primary"
-              :type="room.windSpeed === 'High' ? 'primary' : 'default'"
+              :type="room.wind_speed === 'High' ? 'primary' : 'default'"
               @click="setWindSpeed('High')"
             >
               高
@@ -102,10 +102,10 @@
 
     <transition name="fade">
       <div v-if="showDetails" class="room-details animate__animated animate__fadeIn">
-        <p>当前温度: {{ room.ntem.toFixed(2) }} °C <i :class="temperatureIcon"></i></p>
-        <p>目标温度: {{ room.targetTemperature }} °C</p>
-        <p>当前风速: {{ room.windSpeed }}</p>
-        <p>空调状态: {{ room.isPoweredOn ? '开机' : '关机' }}</p>
+        <p>当前温度: {{ room.current_temperature.toFixed(2) }} °C <i :class="temperatureIcon"></i></p>
+        <p>目标温度: {{ room.target_temperature }} °C</p>
+        <p>当前风速: {{ room.wind_speed }}</p>
+        <p>空调状态: {{ room.is_powered_on ? '开机' : '关机' }}</p>
         <p>累计费用: {{ room.w.toFixed(2) }} 元</p>
       </div>
     </transition>
@@ -119,7 +119,7 @@
 <script>
 import { turnOn, turnOff, setTemperature, setWindSpeed, setMode } from '../api'
 import debounce from 'lodash/debounce'
-import { ElNotification } from 'element-plus' // 确保导入ElNotification
+import { ElNotification } from 'element-plus'
 
 export default {
   name: 'RoomCard',
@@ -141,9 +141,9 @@ export default {
   },
   computed: {
     temperatureClass() {
-      if (this.room.ntem < this.room.targetTemperature - 1) {
+      if (this.room.current_temperature < this.room.target_temperature - 1) {
         return 'cooling';
-      } else if (this.room.ntem > this.room.targetTemperature + 1) {
+      } else if (this.room.current_temperature > this.room.target_temperature + 1) {
         return 'heating';
       } else {
         return 'comfortable';
@@ -165,8 +165,8 @@ export default {
   methods: {
     togglePower() {
       this.loadingPower = true
-      if (this.room.isPoweredOn) {
-        turnOff(this.room.roomNumber)
+      if (this.room.is_powered_on) {
+        turnOff(this.room.room_number)
           .then(() => {
             this.$emit('refresh')
             ElNotification.success({
@@ -186,7 +186,7 @@ export default {
             this.loadingPower = false
           })
       } else {
-        turnOn(this.room.roomNumber)
+        turnOn(this.room.room_number)
           .then(() => {
             this.$emit('refresh')
             ElNotification.success({
@@ -208,7 +208,7 @@ export default {
       }
     },
     updateTemperature() {
-      if (this.room.targetTemperature < 18 || this.room.targetTemperature > 30) {
+      if (this.room.target_temperature < 18 || this.room.target_temperature > 30) {
         ElNotification.warning({
           title: '警告',
           message: '目标温度必须在18°C到30°C之间'
@@ -216,7 +216,7 @@ export default {
         return
       }
       this.loadingTemperature = true
-      setTemperature(this.room.roomNumber, this.room.targetTemperature)
+      setTemperature(this.room.room_number, this.room.target_temperature)
         .then(() => {
           this.$emit('refresh')
           ElNotification.success({
@@ -237,9 +237,9 @@ export default {
         })
     },
     setWindSpeed(speed) {
-      if (this.room.windSpeed === speed) return // 无需更改
+      if (this.room.wind_speed === speed) return // 无需更改
       this.loadingWindSpeed = true
-      setWindSpeed(this.room.roomNumber, speed)
+      setWindSpeed(this.room.room_number, speed)
         .then(() => {
           this.$emit('refresh')
           ElNotification.success({
@@ -261,7 +261,7 @@ export default {
     },
     handleModeChange(val) {
       this.loadingMode = true
-      setMode(this.room.roomNumber, val)
+      setMode(this.room.room_number, val)
         .then(() => {
           this.$emit('refresh')
           ElNotification.success({

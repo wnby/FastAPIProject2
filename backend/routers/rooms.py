@@ -1,7 +1,9 @@
 # backend/routers/rooms.py
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
+from pydantic import BaseModel
 from ..database import SessionLocal
 from ..schemas import Room, ModeEnum, WindSpeedEnum
 from ..models import RoomModel
@@ -15,6 +17,16 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# Pydantic模型用于接收请求体
+class SetTemperatureRequest(BaseModel):
+    temperature: float
+
+class SetWindSpeedRequest(BaseModel):
+    wind_speed: WindSpeedEnum
+
+class SetModeRequest(BaseModel):
+    mode: ModeEnum
 
 @router.get("/room_info", response_model=List[Room])
 def get_room_info(db: Session = Depends(get_db)):
@@ -44,7 +56,8 @@ def turn_off(room_number: int, db: Session = Depends(get_db)):
     return {"message": "Room powered off"}
 
 @router.post("/{room_number}/set_temperature")
-def set_temperature(room_number: int, temperature: float, db: Session = Depends(get_db)):
+def set_temperature(room_number: int, request: SetTemperatureRequest, db: Session = Depends(get_db)):
+    temperature = request.temperature
     if temperature < 18 or temperature > 30:
         raise HTTPException(status_code=400, detail="Temperature must be between 18°C and 30°C")
     room = db.query(RoomModel).filter(RoomModel.room_number == room_number).first()
@@ -55,7 +68,8 @@ def set_temperature(room_number: int, temperature: float, db: Session = Depends(
     return {"message": "Target temperature set"}
 
 @router.post("/{room_number}/set_wind_speed")
-def set_wind_speed(room_number: int, wind_speed: WindSpeedEnum, db: Session = Depends(get_db)):
+def set_wind_speed(room_number: int, request: SetWindSpeedRequest, db: Session = Depends(get_db)):
+    wind_speed = request.wind_speed
     room = db.query(RoomModel).filter(RoomModel.room_number == room_number).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
@@ -66,7 +80,8 @@ def set_wind_speed(room_number: int, wind_speed: WindSpeedEnum, db: Session = De
     return {"message": "Wind speed set"}
 
 @router.post("/{room_number}/set_mode")
-def set_mode(room_number: int, mode: ModeEnum, db: Session = Depends(get_db)):
+def set_mode(room_number: int, request: SetModeRequest, db: Session = Depends(get_db)):
+    mode = request.mode
     room = db.query(RoomModel).filter(RoomModel.room_number == room_number).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
